@@ -1,0 +1,47 @@
+myhosts:
+  - host: bastion.miniocp.vm
+    ip: 192.168.122.20
+    user: openshift
+  - host: master.miniocp.vm
+    ip: 192.168.122.21
+    user: openshift
+  - host: node.miniocp.vm
+    ip: 192.168.122.22
+    user: openshift
+repositories:
+  - rhel-7-server-rpms
+  - rhel-7-server-extras-rpms
+  - rhel-7-server-ose-3.11-rpms
+  - rhel-7-server-ansible-2.6-rpms
+packages:
+  all:
+    - ansible
+    - bind
+    - bind-utils
+    - wget
+    - git
+    - net-tools
+    - yum-utils
+    - iptables-services
+    - bridge-utils
+    - bash-completion
+    - bash-completion-extras
+    - kexec-tools
+    - sos
+    - psacct
+    - openshift-ansible
+    - docker-1.13.1
+  bastion:
+    - patch
+    - httpd-tools
+    - java-1.8.0-openjdk-headless
+    - tmux
+    - vim
+    - atomic-openshift-clients
+    - yum-plugin-versionlock
+    - python-pip
+    - python-passlib
+    - python-cryptography
+    - python-lxml
+    - tree
+    - screen

@@ -1,0 +1,6 @@
+[bastion]
+bastion.miniocp.vm
+
+[ocp]
+master.miniocp.vm
+node.miniocp.vm

@@ -1,0 +1,69 @@
+- name: Add machines to hosts file and configure ssh connection
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Add vms to hosts file
+      lineinfile:
+        dest: "/etc/hosts"
+        state: present
+        line: "{{ item.ip }} {{ item.host }}"
+        backup: yes
+      loop: "{{ myhosts }}"
+    - name: Configure ssh to vms
+      blockinfile:
+        path: "{{ lookup('env','HOME') + '/.ssh/config' }}"
+        state: present
+        marker: "# {mark} ANSIBLE MANAGED BLOCK {{ item.host }}"
+        block: |
+          Host {{ item.host }}
+             User {{ item.user }}
+      loop: "{{ myhosts }}"
+- name: Configure machines for the OCP installation
+  hosts: all
+  become: yes
+  vars_files:
+    - group_vars/vault.yml
+  tasks:
+    - name: Copy ssh keys
+      authorized_key:
+        user: openshift
+        state: present
+        key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
+    - name: Modify sudo config to allow openshift users sudo without a password
+      lineinfile:
+        dest: "/etc/sudoers"
+        state: "present"
+        regexp: "^%wheel"
+        line: "%wheel ALL=(ALL) NOPASSWD: ALL"
+        validate: '/usr/sbin/visudo -cf %s'
+    - name: Register as user and password using a given pool id
+      redhat_subscription:
+        state: present
+        username: "{{ rh_subscription_username }}"
+        password: "{{ rh_subscription_password }}"
+        pool_ids: "{{ rh_subscription_poolid }}"
+    - name: Disable all the Red Hat repositories
+      rhsm_repository:
+        name: '*'
+        state: disabled
+    - name: Enable only the repositories required by OCP
+      rhsm_repository:
+        name: "{{ repositories }}"
+        state: present
+    - name: Ensure EPEL is enabled
+      yum:
+        name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        state: present
+    - name: Install necessary packages
+      yum:
+        name: "{{ packages.all }}"
+        state: latest
+    - name: Install packages only for bastion
+      yum:
+        name: "{{ packages.bastion }}"
+        state: latest
+      when: inventory_hostname in groups['bastion']
+    - name: Upgrade all the packages
+      yum:
+        name: '*'
+        state: latest

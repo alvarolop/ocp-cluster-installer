@@ -9,6 +9,7 @@ bastion.miniocp.vm:
       ip: 192.168.122.20
       mask: 255.255.255.0
       gateway: 192.168.122.1
+  dns: 192.168.122.20
   cmds:
     - echo root | passwd --stdin root
     - useradd -G wheel openshift
@@ -16,7 +17,7 @@ bastion.miniocp.vm:
 master.miniocp.vm:
   template: /home/alvaro/vms/rhel-server-7.6-x86_64-kvm.qcow2
   numcpus: 1
-  memory: 10240
+  memory: 6144
   disks:
     - size: 50
   nets:
@@ -24,6 +25,23 @@ master.miniocp.vm:
       ip: 192.168.122.21
       mask: 255.255.255.0
       gateway: 192.168.122.1
+  dns: 192.168.122.20
+  cmds:
+    - echo root | passwd --stdin root
+    - useradd -G wheel openshift
+    - echo openshift | passwd --stdin openshift
+infra.miniocp.vm:
+  template: /home/alvaro/vms/rhel-server-7.6-x86_64-kvm.qcow2
+  numcpus: 1
+  memory: 6144
+  disks:
+    - size: 50
+  nets:
+    - name: default
+      ip: 192.168.122.22
+      mask: 255.255.255.0
+      gateway: 192.168.122.1
+  dns: 192.168.122.20
   cmds:
     - echo root | passwd --stdin root
     - useradd -G wheel openshift
@@ -36,9 +54,10 @@ node.miniocp.vm:
     - size: 50
   nets:
     - name: default
-      ip: 192.168.122.22
+      ip: 192.168.122.23
       mask: 255.255.255.0
       gateway: 192.168.122.1
+  dns: 192.168.122.20
   cmds:
     - echo root | passwd --stdin root
     - useradd -G wheel openshift

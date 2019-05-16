@@ -1,0 +1,31 @@
+- name: Create PVs for Users
+  hosts: nfs
+  tasks:
+    - name: Create directories for all the NFS 
+      script: ../scripts/pvs_create_directories.sh
+
+    - name: Restart NFS server
+      service:
+        name: nfs-server
+        state: restarted
+
+- name: Create 25 definitions files for PVs 5G size
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Create 25 definitions for PVs 5G size
+      script: ../scripts/pvs_5Gsize.sh
+
+    - name: Create 25 definitions for PVs 10G size
+      script: ../scripts/pvs_10Gsize.sh
+
+    - name: Create all PVs
+      script: ../scripts/pvs_create.sh
+
+- name: Fix NFS Persistent Volume Recycling
+  hosts: nodes
+  tasks:
+    - name: Docker pull
+      command: "docker pull registry.access.redhat.com/openshift3/ose-recycler:latest"
+    - name: Docker tag
+      command: "docker tag registry.access.redhat.com/openshift3/ose-recycler:latest registry.access.redhat.com/openshift3/ose-recycler:v3.9.30"

@@ -1,0 +1,87 @@
+---
+- name: Check Docker
+  hosts: nodes
+  tasks:
+    - name: Copy ssh keys
+      authorized_key:
+        user: openshift
+        state: present
+        key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
+
+    - name: Start and enable docker
+      service:
+        name: docker
+        enabled: yes
+        state: started
+        
+- name: Check NFS
+  hosts: nfs
+  tasks:
+    - name: Check - NFS
+      command: exportfs
+
+- name: Include the prerequisites playbook
+  import_playbook: /usr/share/ansible/openshift-ansible/playbooks/prerequisites.yml
+
+- name: Include the deploy_cluster playbook
+  import_playbook: /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml
+
+# - name: Check installation
+#   hosts: masters
+#   tasks:
+#     - name: Check etcd instances
+#       service:
+#         name: etcd
+#         state: started
+
+# - name: Create network policy
+#   hosts: localhost
+#   connection: local
+#   tasks:
+#     - name: Label the default project
+#       command: "oc label namespace default name=default"
+#     - name: Load project template
+#       command: "oc create -f ../resources/project_template.yaml -n default"
+
+# - name: Configure to use the new project template
+#   hosts: masters
+#   tasks:
+#     - name: Add the new project template
+#       replace:
+#         path: /etc/origin/master/master-config.yaml
+#         regexp: "  projectRequestTemplate: ''"
+#         replace:  "  projectRequestTemplate: 'default/project-request'"
+#     - name: Restart API and controllers
+#       service:
+#         name: "{{ item }}"
+#         state: restarted
+#       loop: 
+#         - atomic-openshift-master-api
+#         - atomic-openshift-master-controllers
+
+
+
+# Generate default project template
+# https://docs.openshift.com/container-platform/3.9/admin_guide/managing_projects.html#modifying-the-template-for-new-projects
+# https://docs.openshift.com/container-platform/3.9/admin_guide/managing_networking.html#admin-guide-networking-networkpolicy-setting-default
+# 1. oc adm create-bootstrap-project-template -o yaml > template.yaml
+# 2. Modify it
+# 3. oc create -f template.yaml -n default
+# 4. Notify the masters that they have to use the new project template
+                                                                               
+
+
+
+
+# - name: Create PVs
+#   import_playbook: ./playbooks/050_create_pvs.yaml
+
+# - name: Set limits per label
+#   import_playbook: ./playbooks/060_set_default_limit_range.yaml
+
+# - name: Create the default projects
+#   import_playbook: ./playbooks/070_multitenancy_clients_projects.yaml
+
+# - name: Create CICD Workflow
+#   import_playbook: ./playbooks/080_cicd_workflow.yaml
+

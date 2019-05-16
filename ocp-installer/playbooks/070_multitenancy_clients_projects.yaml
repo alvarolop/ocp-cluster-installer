@@ -1,0 +1,36 @@
+---
+- name: Create clients, groups and projects
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Create projects
+      command: "oc adm new-project {{ item }}"
+      with_items:
+        - "common-project --display-name='Common project'"
+        - "alpha-project --display-name='Alpha Corp' --node-selector='client=alpha'"
+        - "beta-project --display-name='Beta Corp' --node-selector='client=beta'"
+
+#    - name: Add users to openshift
+#      command: "oc create -f ../templates/user_{{ item }}.yaml"
+#      with_items:
+#        - "alpha_Amy"
+#        - "alpha_Andrew"
+#        - "beta_Brian"
+#        - "beta_Betty"
+    
+    - name: Add users to openshift
+      shell: "oc process -f ../resources/users_list.yaml | oc create -f -"
+
+    - name: Create groups for users
+      command: "{{ item }}"
+      with_items:
+        - "oc adm groups new alpha Amy Andrew"
+        - "oc adm groups new beta Brian Betty"
+    
+# https://docs.openshift.com/container-platform/3.3/architecture/additional_concepts/authorization.html#roles
+# https://docs.openshift.com/container-platform/3.3/admin_solutions/user_role_mgmt.html#control-user-roles
+    - name: Add policies to groups
+      command: "{{ item }}"
+      with_items:
+        - "oc policy add-role-to-group edit beta -n beta-project"
+        - "oc policy add-role-to-group edit alpha -n alpha-project" 

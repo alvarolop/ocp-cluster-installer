@@ -1,0 +1,31 @@
+---
+- name: Automatize all the tasks
+  hosts: localhost 
+  connection: local
+  tasks:
+    - name: Create a var with the GUID value
+      shell: hostname | cut -d"." -f2
+      register: guid 
+
+    - name: Replace values of the GUID in the openshift-ansible hosts file
+      replace:
+        path: ../hosts
+        regexp: '<GUID>'
+        replace: '{{ guid.stdout }}' 
+
+    - name: Replace values of the INSTALLATION PATH in the openshift-ansible hosts file
+      replace:
+        path: ../hosts
+        regexp: '<INSTALLATION_PATH>'
+        replace: '{{ playbook_dir }}/' 
+
+    - name: Refresh inventory to ensure new instaces exist in inventory
+      meta: refresh_inventory
+
+    - name: Install tools
+      yum:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - atomic-openshift-utils
+        - atomic-openshift-clients

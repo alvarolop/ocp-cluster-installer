@@ -1,0 +1,32 @@
+---
+#- name: Check Docker
+#  hosts: nodes
+#  tasks:
+#    - name: Check - docker running
+#      service:
+#        name: docker
+#        statue: started
+
+- name: Check Docker
+  hosts: nodes
+  tasks:
+    - name: Check - docker running
+      shell: systemctl status docker | grep Active
+    
+    - name: Check - docker version
+      shell: docker version|grep Version
+
+- name: Check repos
+  hosts: all
+  tasks:
+    - name: Check - repos
+      yum:
+        list: repolist
+      register: result
+
+- name: Check NFS
+  hosts: nfs
+  tasks:
+    - name: Check - NFS
+      command: exportfs
+

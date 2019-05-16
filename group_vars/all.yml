@@ -5,8 +5,11 @@ myhosts:
   - host: master.miniocp.vm
     ip: 192.168.122.21
     user: openshift
-  - host: node.miniocp.vm
+  - host: infra.miniocp.vm
     ip: 192.168.122.22
+    user: openshift
+  - host: node.miniocp.vm
+    ip: 192.168.122.23
     user: openshift
 repositories:
   - rhel-7-server-rpms
@@ -24,6 +27,7 @@ packages:
     - yum-utils
     - iptables-services
     - bridge-utils
+#    - atomic-openshift-utils
     - bash-completion
     - bash-completion-extras
     - kexec-tools
@@ -45,3 +49,17 @@ packages:
     - python-lxml
     - tree
     - screen
+openshift_master_default_subdomain: miniocp.duckdns.org
+openshift_master_htpasswd_users:
+  - user: admin
+    pass: $apr1$His0EwFR$UkDefLNZsO7SVCO.5932t1 # admin
+  - user: developer
+    pass: $apr1$S9dJkChQ$SrjX./WknEViSPERfa38t0 # developer
+  - user: alvaro
+    pass: $apr1$TmtQSCzk$HH3D7CU8QE2WZE60i92uO1 # alvaro
+# Vault variables
+rh_subscription_username: "{{ vault_rh_subscription_username | mandatory }}"
+rh_subscription_password: "{{ vault_rh_subscription_password | mandatory }}"
+rh_subscription_poolid: "{{ vault_rh_subscription_poolid | mandatory }}"
+rh_registry_username: "{{ vault_rh_registry_username | mandatory }}"
+rh_registry_token: "{{ vault_rh_registry_token | mandatory }}"

@@ -1,0 +1,58 @@
+---
+- name: Copy the system:admin certificate in the bastion 
+  hosts: masters[0]
+  tasks:
+    - name: Copy files
+      fetch:
+        src: /root/.kube/config
+        dest: /root/.kube/config
+        flat: yes
+
+- name: Check installation
+  hosts: masters
+  tasks:
+    - name: Check etcd instances
+      service:
+        name: etcd
+        state: started
+
+- name: Create the new network policy
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Label the default project
+      command: "oc label namespace default name=default"
+
+    - name: Load project template
+      command: "oc create -f ../resources/project_template.yaml -n default"
+
+- name: Tell openshift to use the new template
+  hosts: masters
+  tasks:
+    - name: Add the new project template
+      replace:
+        path: /etc/origin/master/master-config.yaml
+        regexp: "  projectRequestTemplate: ''"
+        replace:  "  projectRequestTemplate: 'default/project-request'"
+
+- name: Restart master services to use the new project template
+  hosts: masters
+  tasks:
+    - name: Restart API
+      service:
+        name: atomic-openshift-master-api
+        state: restarted
+
+    - name: Restart controllers
+      service:
+        name: atomic-openshift-master-controllers
+        state: restarted
+
+
+# Generate default project template
+# https://docs.openshift.com/container-platform/3.9/admin_guide/managing_projects.html#modifying-the-template-for-new-projects
+# https://docs.openshift.com/container-platform/3.9/admin_guide/managing_networking.html#admin-guide-networking-networkpolicy-setting-default
+# 1. oc adm create-bootstrap-project-template -o yaml > template.yaml
+# 2. Modify it
+# 3. oc create -f template.yaml -n default
+# 4. Notify the masters that they have to use the new project template

@@ -1,0 +1,42 @@
+kind: "Template"
+apiVersion: "v1"
+metadata:
+  name: users-list
+objects:
+  - kind: User
+    apiVersion: "v1"
+    metadata:
+      creationTimestamp: null
+      labels:
+        client: alpha
+      name: Amy
+    identities:
+    - htpasswd_auth:Amy
+  - kind: User
+    apiVersion: "v1"
+    metadata:
+      creationTimestamp: null
+      labels:
+        client: alpha
+      name: Andrew
+    identities:
+    - htpasswd_auth:Andrew
+  - kind: User
+    apiVersion: "v1"
+    metadata:
+      creationTimestamp: null
+      labels:
+        client: beta
+      name: Betty
+    identities:
+    - htpasswd_auth:Betty
+  - kind: User
+    apiVersion: "v1"
+    metadata:
+      creationTimestamp: null
+      labels:
+        client: beta
+      name: Brian
+    identities:
+    - htpasswd_auth:Brian
+

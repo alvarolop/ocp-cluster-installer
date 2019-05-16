@@ -1,0 +1,18 @@
+---
+- name: Add user Alvaro
+  hosts: masters
+  tasks:
+    - name: Add alvaro to the htpasswd
+      command: "htpasswd -b /etc/origin/master/htpasswd alvaro alvaro"
+
+- name: Create clients, groups and projects
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Add users to openshift
+      command: "oc create -f ../resources/user_cluster_admin.yaml"
+    
+# https://docs.openshift.com/container-platform/3.3/architecture/additional_concepts/authorization.html#roles
+# https://docs.openshift.com/container-platform/3.3/admin_solutions/user_role_mgmt.html#control-user-roles
+    - name: Add policies to groups
+      command: "oc adm policy add-cluster-role-to-user cluster-admin alvaro"

@@ -1,0 +1,27 @@
+- name: Add machines to hosts file and configure ssh connection
+  hosts: localhost
+  connection: local
+  become: yes
+  tasks:
+    - name: Add vms to hosts file
+      lineinfile:
+        dest: "/etc/hosts"
+        state: absent
+        line: "{{ item.ip }} {{ item.host }}"
+        backup: yes
+      loop: "{{ myhosts }}"
+    - name: Configure ssh to vms
+      blockinfile:
+        path: "{{ lookup('env','HOME') + '/.ssh/config' }}"
+        state: absent
+        marker: "# {mark} ANSIBLE MANAGED BLOCK {{ item.host }}"
+        block: |
+          Host {{ item.host }}
+             User {{ item.user }}
+      loop: "{{ myhosts }}"
+    - name: Remove previous hosts from ~/.ssh/known_hosts
+      lineinfile:
+        path: "{{ lookup('env','HOME') + '/.ssh/known_hosts' }}"
+        state: absent
+        regexp: "^{{ item.host }}"
+      loop: "{{ myhosts }}"

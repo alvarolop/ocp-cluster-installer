@@ -3,4 +3,5 @@ bastion.miniocp.vm
 
 [ocp]
 master.miniocp.vm
+infra.miniocp.vm
 node.miniocp.vm

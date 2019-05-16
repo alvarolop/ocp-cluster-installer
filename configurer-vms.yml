@@ -1,0 +1,100 @@
+- name: Configure machines for the OCP installation
+  hosts: all
+  become: yes
+  vars_files:
+    - group_vars/vault.yml
+  tasks:
+    - name: Copy ssh keys
+      authorized_key:
+        user: openshift
+        state: present
+        key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
+    - name: Modify sudo config to allow openshift users sudo without a password
+      lineinfile:
+        dest: "/etc/sudoers"
+        state: "present"
+        regexp: "^%wheel"
+        line: "%wheel ALL=(ALL) NOPASSWD: ALL"
+        validate: '/usr/sbin/visudo -cf %s'
+    # - name: Register as user and password using a given pool id
+    #   redhat_subscription:
+    #     state: present
+    #     username: "{{ rh_subscription_username }}"
+    #     password: "{{ rh_subscription_password }}"
+    #     pool_ids: "{{ rh_subscription_poolid }}"
+    # - name: Disable all the Red Hat repositories
+    #   rhsm_repository:
+    #     name: '*'
+    #     state: disabled
+    # - name: Enable only the repositories required by OCP
+    #   rhsm_repository:
+    #     name: "{{ repositories }}"
+    #     state: present
+    # - name: Ensure EPEL is enabled
+    #   yum:
+    #     name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    #     state: present
+    # - name: Install necessary packages
+    #   yum:
+    #     name: "{{ packages.all }}"
+    #     state: latest
+    # - name: Upgrade all the packages
+    #   yum:
+    #     name: '*'
+    #     state: latest
+- name: Install packages in bastion and copy OCP installer files
+  hosts: bastion
+  become: yes
+  vars_files:
+    - group_vars/vault.yml
+  tasks:
+    # - name: Install packages only for bastion
+    #   yum:
+    #     name: "{{ packages.bastion }}"
+    #     state: latest
+    - name: Copy the installation playbooks to bastion
+      copy:
+        src: "ocp-installer/"
+        dest: "/home/openshift/ocp-cluster-installer"
+    - name: Use the template to add (1) user/token RH registry, (2) htpasswd users,  (3) openshift_master_default_subdomain
+      template:
+        src: "templates/hosts.j2"
+        dest: "/home/openshift/ocp-cluster-installer/hosts"
+    - name: Copy named.conf
+      copy:
+        src: "named/named.conf"
+        dest: "/etc/named.conf"
+        force: yes
+    # - name: create a named directory if it doesn't exist
+    #   file:
+    #     path: /var/named
+    #     state: directory
+    - name: Copy 122.168.192.db
+      copy:
+        src: "named/122.168.192.db"
+        dest: "/var/named/122.168.192.db"
+        force: yes
+    - name: "Copy miniocp.vm.db"
+      copy:
+        src: "named/miniocp.vm.db"
+        dest: "/var/named/miniocp.vm.db"
+        force: yes
+    - name: Check - named
+      command: named-checkconf
+    - name: Start and enable named
+      service:
+        name: named
+        enabled: yes
+        state: restarted
+    - name: Create a 2048-bit SSH key for user openshift in ~openshift/.ssh/id_rsa
+      user:
+        name: openshift
+        generate_ssh_key: yes
+        ssh_key_bits: 2048
+        ssh_key_file: .ssh/id_rsa
+
+
+
+#    - name: Modify the hosts file to contain only correct hosts. use Jinja for user/password; add hosts to master, infra, etc; OCP hostname and url, 
+#      template:    
+    

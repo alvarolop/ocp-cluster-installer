@@ -1,0 +1,25 @@
+---
+- name: Change GUID of the hosts file
+  import_playbook: ./playbooks/010_init.yaml
+
+- name: Prepare the environment to install the cluster
+  import_playbook: ./playbooks/020_pre_install.yaml
+
+- name: Call the prerequisites and deploy_cluster ansible playbooks
+  import_playbook: ./playbooks/030_install.yaml
+
+- name: Allow admin access, set NetworkPolicy and 
+  import_playbook: ./playbooks/040_post_install.yaml
+
+- name: Create PVs
+  import_playbook: ./playbooks/050_create_pvs.yaml
+
+- name: Set limits per label
+  import_playbook: ./playbooks/060_set_default_limit_range.yaml
+
+- name: Create the default projects
+  import_playbook: ./playbooks/070_multitenancy_clients_projects.yaml
+
+- name: Create CICD Workflow
+  import_playbook: ./playbooks/080_cicd_workflow.yaml
+

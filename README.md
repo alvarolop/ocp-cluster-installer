@@ -238,6 +238,29 @@ cd ocp-cluster-installer
 ansible-playbook main.yml --ask-pass --become
 ```
 
+Now that everything is installed, you can adjust the memory settings to give more RAM for the applications:
+
+```bash
+kcli update --memory 2048 bastion.miniocp.vm    # Previously 4096, now 2GB
+kcli update --memory 4096 master.miniocp.vm     # Previously 6144, now 4GB
+kcli update --memory 9216 infra.miniocp.vm      # Previously 6144, now 9GB
+kcli update --memory 7168 node.miniocp.vm       # Previously 4096, now 7GB
+# Total = 22 GB
+```
+
+There is one pod that cannot start do to its memory request `logging-es-data-master` of project `openshift-logging`:
+
+```bash
+oc patch dc/logging-es-data-master-juk77cph -p '{"spec": {"template": {"spec": {"containers": [{"name": "elasticsearch","resources": {"requests": {"memory": "1Gi"}}}]}}}}' -n openshift-logging
+oc rollout latest logging-es-data-master-juk77cph
+```
+
+Finally, now you are able to log in as `oc login -u system:admin` from the master node to give clusterAdmin permissions to your account:
+
+```bash
+oc adm policy add-cluster-role-to-user cluster-admin admin
+oc adm policy add-cluster-role-to-user cluster-admin alvaro
+```
 
 ## Section 4. Reset localhost
 

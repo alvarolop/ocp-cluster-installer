@@ -16,42 +16,42 @@
         regexp: "^%wheel"
         line: "%wheel ALL=(ALL) NOPASSWD: ALL"
         validate: '/usr/sbin/visudo -cf %s'
-    # - name: Register as user and password using a given pool id
-    #   redhat_subscription:
-    #     state: present
-    #     username: "{{ rh_subscription_username }}"
-    #     password: "{{ rh_subscription_password }}"
-    #     pool_ids: "{{ rh_subscription_poolid }}"
-    # - name: Disable all the Red Hat repositories
-    #   rhsm_repository:
-    #     name: '*'
-    #     state: disabled
-    # - name: Enable only the repositories required by OCP
-    #   rhsm_repository:
-    #     name: "{{ repositories }}"
-    #     state: present
-    # - name: Ensure EPEL is enabled
-    #   yum:
-    #     name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-    #     state: present
-    # - name: Install necessary packages
-    #   yum:
-    #     name: "{{ packages.all }}"
-    #     state: latest
-    # - name: Upgrade all the packages
-    #   yum:
-    #     name: '*'
-    #     state: latest
+    - name: Register as user and password using a given pool id
+      redhat_subscription:
+        state: present
+        username: "{{ rh_subscription_username }}"
+        password: "{{ rh_subscription_password }}"
+        pool_ids: "{{ rh_subscription_poolid }}"
+    - name: Disable all the Red Hat repositories
+      rhsm_repository:
+        name: '*'
+        state: disabled
+    - name: Enable only the repositories required by OCP
+      rhsm_repository:
+        name: "{{ repositories }}"
+        state: present
+    - name: Ensure EPEL is enabled
+      yum:
+        name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        state: present
+    - name: Install necessary packages
+      yum:
+        name: "{{ packages.all }}"
+        state: latest
+    - name: Upgrade all the packages
+      yum:
+        name: '*'
+        state: latest
 - name: Install packages in bastion and copy OCP installer files
   hosts: bastion
   become: yes
   vars_files:
     - group_vars/vault.yml
   tasks:
-    # - name: Install packages only for bastion
-    #   yum:
-    #     name: "{{ packages.bastion }}"
-    #     state: latest
+    - name: Install packages only for bastion
+      yum:
+        name: "{{ packages.bastion }}"
+        state: latest
     - name: Copy the installation playbooks to bastion
       copy:
         src: "ocp-installer/"
